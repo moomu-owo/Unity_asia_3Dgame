@@ -13,6 +13,10 @@ public class Enemy : MonoBehaviour
     public float stopDistance = 2.5f;
     [Header("攻擊冷卻時間"), Range(0, 50)]
     private float cd = 2f;
+    [Header("攻擊中心點")]
+    public Transform atkPoint;
+    [Header("攻擊長度"), Range(0f, 5f)]
+    public float atkLength;
 
     private Transform player;
     private NavMeshAgent nav;
@@ -44,6 +48,11 @@ public class Enemy : MonoBehaviour
         Attack();
     }
 
+
+
+    ///射線擊中的物件
+    private RaycastHit hit;
+
     ///攻擊
     private void Attack()
     {
@@ -64,8 +73,26 @@ public class Enemy : MonoBehaviour
             {
                 ani.SetTrigger("attack");
                 timer = 0;
+
+                //物理.射線碰撞(攻擊中心點的座標，攻擊中心點的前方，射線擊中的物件，攻擊長度，圖層)
+                //圖層: 1<<圖層編號
+                //如果射線  擊中物件  就執行()
+                if (Physics.Raycast(atkPoint.position, atkPoint.forward, out hit, atkLength, 1 << 8))
+                {
+                    //碰撞物件.取得元件<玩家>().受傷()
+                    hit.collider.GetComponent<Player>().Damage();
+                }
             }
         }
+    }
+
+    private void OnDrawGizmos()
+    {
+        //圖示.顏色 = 紅色
+        Gizmos.color = Color.green;
+        //圖示.繪製射線(中心點，方向)
+        //(攻擊中心點座標，攻擊中心點的前方 *攻擊長度)
+        Gizmos.DrawRay(atkPoint.position, atkPoint.forward * atkLength);
     }
 
     ///追蹤
